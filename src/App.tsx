@@ -4,41 +4,52 @@ import { Welcome } from './components/Welcome';
 import { FlowerFeed } from './components/FlowerFeed';
 import { CustomBouquet } from './components/CustomBouquet';
 import { BidsList } from './components/BidsList';
-import { api } from './services/api';
 
 type Screen = 'welcome' | 'feed' | 'custom' | 'bids';
 
 function AppContent() {
-  const { buyer, setBuyer, buyerId } = useBuyer();
+  const { buyer, setBuyer } = useBuyer();
   const [screen, setScreen] = useState<Screen>('welcome');
   const [currentBouquetId, setCurrentBouquetId] = useState<number | null>(null);
+  const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
   useEffect(() => {
-    if (!buyerId) {
-      // For local dev/testing, set a dummy buyer
-      setBuyer({ id: 1, name: 'Test Buyer', location: 'Test City' });
+    let telegramUserId = '';
+    let telegramLang = 'en';
+    if ((window as any).Telegram?.WebApp?.initData) {
+      const params = new URLSearchParams((window as any).Telegram.WebApp.initData);
+      telegramUserId = params.get('user') || '';
+      telegramLang = params.get('lang') || 'en';
+    }
+    setAuthLog('Authenticating with Telegram...');
+    if (!telegramUserId) {
+      setAuthLog('Authentication failed: Telegram user not found.');
       return;
     }
-    loadBuyerInfo();
-  }, [buyerId]);
+    setAuthLog('Telegram authentication succeeded, loading profile...');
+    loadBuyerInfo(telegramUserId, telegramLang);
+  }, []);
 
   useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
+    if ((window as any).Telegram?.WebApp) {
+      (window as any).Telegram.WebApp.ready();
+      (window as any).Telegram.WebApp.expand();
     }
   }, []);
 
-  const loadBuyerInfo = async () => {
+  const loadBuyerInfo = async (userId: string, lang: string) => {
     try {
-      const data = await api.getBuyerInfo(buyerId);
-      setBuyer(data);
-    } catch (error) {
-      setBuyer({
-        id: parseInt(buyerId),
-        name: 'Guest',
-        location: 'Unknown',
+      setAuthLog('Loading profile from backend...');
+      const res = await fetch(`/api/v1/buyer/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, lang })
       });
+      const data = await res.json();
+      setBuyer(data.profile);
+      setAuthLog('Profile loaded, opening app...');
+    } catch (error) {
+      setAuthLog('Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -49,8 +60,9 @@ function AppContent() {
 
   if (!buyer) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mb-4"></div>
+        <div className="text-gray-600">{authLog}</div>
       </div>
     );
   }
