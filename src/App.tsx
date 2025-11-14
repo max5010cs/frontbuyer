@@ -14,9 +14,12 @@ function AppContent() {
   const [currentBouquetId, setCurrentBouquetId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (buyerId) {
-      loadBuyerInfo();
+    if (!buyerId) {
+      // For local dev/testing, set a dummy buyer
+      setBuyer({ id: 1, name: 'Test Buyer', location: 'Test City' });
+      return;
     }
+    loadBuyerInfo();
   }, [buyerId]);
 
   useEffect(() => {
