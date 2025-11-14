@@ -1,4 +1,4 @@
-const API_BASE = '/api/v1';
+const API_BASE = 'https://flowybackend.onrender.com/api/v1';
 
 export const api = {
   async getBuyerInfo(buyerId: string, lang: string = 'en') {
