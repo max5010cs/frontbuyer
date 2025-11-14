@@ -1,0 +1,85 @@
+interface TelegramWebAppUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  language_code?: string;
+}
+
+interface TelegramWebAppInitData {
+  user?: TelegramWebAppUser;
+  auth_date?: number;
+  hash?: string;
+}
+
+interface TelegramWebApp {
+  initData: string;
+  initDataUnsafe: TelegramWebAppInitData;
+  version: string;
+  platform: string;
+  colorScheme: 'light' | 'dark';
+  themeParams: Record<string, string>;
+  isExpanded: boolean;
+  viewportHeight: number;
+  viewportStableHeight: number;
+  headerColor: string;
+  backgroundColor: string;
+  isClosingConfirmationEnabled: boolean;
+  ready: () => void;
+  expand: () => void;
+  close: () => void;
+  enableClosingConfirmation: () => void;
+  disableClosingConfirmation: () => void;
+  onEvent: (eventType: string, callback: () => void) => void;
+  offEvent: (eventType: string, callback: () => void) => void;
+  sendData: (data: string) => void;
+  openLink: (url: string) => void;
+  openTelegramLink: (url: string) => void;
+  showPopup: (params: {
+    title?: string;
+    message: string;
+    buttons?: Array<{ id?: string; type?: string; text: string }>;
+  }, callback?: (buttonId: string) => void) => void;
+  showAlert: (message: string, callback?: () => void) => void;
+  showConfirm: (message: string, callback?: (confirmed: boolean) => void) => void;
+  showScanQrPopup: (params: { text?: string }, callback?: (text: string) => boolean | void) => void;
+  closeScanQrPopup: () => void;
+  readTextFromClipboard: (callback?: (text: string) => void) => void;
+  MainButton: {
+    text: string;
+    color: string;
+    textColor: string;
+    isVisible: boolean;
+    isActive: boolean;
+    isProgressVisible: boolean;
+    setText: (text: string) => void;
+    onClick: (callback: () => void) => void;
+    offClick: (callback: () => void) => void;
+    show: () => void;
+    hide: () => void;
+    enable: () => void;
+    disable: () => void;
+    showProgress: (leaveActive?: boolean) => void;
+    hideProgress: () => void;
+    setParams: (params: {
+      text?: string;
+      color?: string;
+      text_color?: string;
+      is_active?: boolean;
+      is_visible?: boolean;
+    }) => void;
+  };
+  BackButton: {
+    isVisible: boolean;
+    onClick: (callback: () => void) => void;
+    offClick: (callback: () => void) => void;
+    show: () => void;
+    hide: () => void;
+  };
+}
+
+interface Window {
+  Telegram?: {
+    WebApp: TelegramWebApp;
+  };
+}
