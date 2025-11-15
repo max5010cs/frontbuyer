@@ -19,7 +19,8 @@ function AppContent() {
     let initDataRaw = tgWebAppObj?.initData;
     setAuthLog(`Telegram WebApp object: ${JSON.stringify(tgWebAppObj)}\nRaw Telegram initData: ${initDataRaw}`);
     if (!initDataRaw) {
-      setAuthLog('Authentication failed: Telegram initData not found.');
+      // Show the object and initData even if missing
+      setAuthLog(`Telegram WebApp object: ${JSON.stringify(tgWebAppObj)}\nRaw Telegram initData: ${initDataRaw}\nAuthentication failed: Telegram initData not found.`);
       return;
     }
     setAuthLog('Authenticating with Telegram...');
