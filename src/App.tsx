@@ -15,30 +15,15 @@ function AppContent() {
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
   useEffect(() => {
-    // Add detailed logs for Telegram injection
-    const isTelegramPresent = typeof window !== 'undefined' && !!(window as any).Telegram;
-    const isWebAppPresent = isTelegramPresent && !!(window as any).Telegram.WebApp;
-    const initDataRaw = isWebAppPresent ? (window as any).Telegram.WebApp.initData : undefined;
-    const initDataUnsafe = isWebAppPresent ? (window as any).Telegram.WebApp.initDataUnsafe : undefined;
-    setAuthLog(
-      `Is Telegram present? ${isTelegramPresent}\n` +
-      `Is WebApp present? ${isWebAppPresent}\n` +
-      `Raw Telegram initData: ${initDataRaw}\n` +
-      `Raw Telegram initDataUnsafe: ${JSON.stringify(initDataUnsafe)}`
-    );
-    if (!initDataRaw) {
-      setAuthLog(
-        `Is Telegram present? ${isTelegramPresent}\n` +
-        `Is WebApp present? ${isWebAppPresent}\n` +
-        `Raw Telegram initData: ${initDataRaw}\n` +
-        `Raw Telegram initDataUnsafe: ${JSON.stringify(initDataUnsafe)}\n` +
-        'Authentication failed: Telegram initData not found.'
-      );
+    // Read encrypted user_id from URL param 'auth'
+    const params = new URLSearchParams(window.location.search);
+    const encryptedId = params.get('auth');
+    if (!encryptedId) {
+      setAuthLog('Authentication failed: No auth token found in URL.');
       return;
     }
     setAuthLog('Authenticating with Telegram...');
-    // Send raw initData to backend for verification and extraction
-    loadBuyerInfo(initDataRaw);
+    loadBuyerInfo(encryptedId);
   }, []);
 
   useEffect(() => {
@@ -48,12 +33,10 @@ function AppContent() {
     }
   }, []);
 
-  const loadBuyerInfo = async (initData: string) => {
+  const loadBuyerInfo = async (encryptedId: string) => {
     try {
       setAuthLog('Loading profile from backend...');
-      console.log('Authenticating with backend, sending initData:', initData);
-      const data = await api.authenticateBuyer(initData);
-      console.log('Backend response for buyer authentication:', data);
+      const data = await api.authenticateBuyer(encryptedId);
       if (data.profile) {
         setBuyer(data.profile);
         setAuthLog('Authentication successful, opening app...');
