@@ -15,7 +15,7 @@ function AppContent() {
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
   useEffect(() => {
-    // Read encrypted user_id from URL param 'auth'
+    // Read encrypted user_id from URL param  "auth"
     const params = new URLSearchParams(window.location.search);
     const encryptedId = params.get('auth');
     if (!encryptedId) {
@@ -101,6 +101,13 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
 
 
 
