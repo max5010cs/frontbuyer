@@ -15,8 +15,9 @@ function AppContent() {
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
   useEffect(() => {
-    let initDataRaw = (window as any).Telegram?.WebApp?.initData;
-    console.log('Raw Telegram initData:', initDataRaw);
+    const tgWebAppObj = (window as any).Telegram?.WebApp;
+    let initDataRaw = tgWebAppObj?.initData;
+    setAuthLog(`Telegram WebApp object: ${JSON.stringify(tgWebAppObj)}\nRaw Telegram initData: ${initDataRaw}`);
     if (!initDataRaw) {
       setAuthLog('Authentication failed: Telegram initData not found.');
       return;
