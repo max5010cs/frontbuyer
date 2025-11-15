@@ -41,15 +41,19 @@ function AppContent() {
   const loadBuyerInfo = async (userId: string, lang: string) => {
     try {
       setAuthLog('Loading profile from backend...');
-      const res = await fetch(`/api/v1/buyer/start`, {
+      const res = await fetch(`/api/v1/buyer/authenticate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, lang })
       });
       const data = await res.json();
-      console.log('Backend response for buyer profile:', data);
-      setBuyer(data.profile);
-      setAuthLog('Profile loaded, opening app...');
+      console.log('Backend response for buyer authentication:', data);
+      if (data.profile) {
+        setBuyer(data.profile);
+        setAuthLog('Authentication successful, opening app...');
+      } else {
+        setAuthLog('Authentication failed: user not found.');
+      }
     } catch (error) {
       setAuthLog('Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
