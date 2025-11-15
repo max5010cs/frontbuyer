@@ -47,6 +47,7 @@ function AppContent() {
         body: JSON.stringify({ user_id: userId, lang })
       });
       const data = await res.json();
+      console.log('Backend response for buyer profile:', data);
       setBuyer(data.profile);
       setAuthLog('Profile loaded, opening app...');
     } catch (error) {
