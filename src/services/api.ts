@@ -70,4 +70,17 @@ export const api = {
     if (!response.ok) throw new Error('Failed to accept bid');
     return await response.json();
   },
+
+  async authenticateBuyer(buyerId: string, lang: string = 'en') {
+    const response = await fetch(
+      `${API_BASE}/buyer/authenticate`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: buyerId, lang }),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to authenticate buyer');
+    return await response.json();
+  },
 };
