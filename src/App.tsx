@@ -15,12 +15,25 @@ function AppContent() {
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
   useEffect(() => {
-    const tgWebAppObj = (window as any).Telegram?.WebApp;
-    let initDataRaw = tgWebAppObj?.initData;
-    setAuthLog(`Telegram WebApp object: ${JSON.stringify(tgWebAppObj)}\nRaw Telegram initData: ${initDataRaw}`);
+    // Add detailed logs for Telegram injection
+    const isTelegramPresent = typeof window !== 'undefined' && !!(window as any).Telegram;
+    const isWebAppPresent = isTelegramPresent && !!(window as any).Telegram.WebApp;
+    const initDataRaw = isWebAppPresent ? (window as any).Telegram.WebApp.initData : undefined;
+    const initDataUnsafe = isWebAppPresent ? (window as any).Telegram.WebApp.initDataUnsafe : undefined;
+    setAuthLog(
+      `Is Telegram present? ${isTelegramPresent}\n` +
+      `Is WebApp present? ${isWebAppPresent}\n` +
+      `Raw Telegram initData: ${initDataRaw}\n` +
+      `Raw Telegram initDataUnsafe: ${JSON.stringify(initDataUnsafe)}`
+    );
     if (!initDataRaw) {
-      // Show the object and initData even if missing
-      setAuthLog(`Telegram WebApp object: ${JSON.stringify(tgWebAppObj)}\nRaw Telegram initData: ${initDataRaw}\nAuthentication failed: Telegram initData not found.`);
+      setAuthLog(
+        `Is Telegram present? ${isTelegramPresent}\n` +
+        `Is WebApp present? ${isWebAppPresent}\n` +
+        `Raw Telegram initData: ${initDataRaw}\n` +
+        `Raw Telegram initDataUnsafe: ${JSON.stringify(initDataUnsafe)}\n` +
+        'Authentication failed: Telegram initData not found.'
+      );
       return;
     }
     setAuthLog('Authenticating with Telegram...');
