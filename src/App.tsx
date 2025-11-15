@@ -16,10 +16,23 @@ function AppContent() {
 
   useEffect(() => {
     let telegramUserId = '';
-    if ((window as any).Telegram?.WebApp?.initData) {
-      const params = new URLSearchParams((window as any).Telegram.WebApp.initData);
+    let initDataRaw = (window as any).Telegram?.WebApp?.initData;
+    console.log('Raw Telegram initData:', initDataRaw);
+    if (initDataRaw) {
+      // Try to parse initData as URLSearchParams
+      const params = new URLSearchParams(initDataRaw);
       telegramUserId = params.get('user') || '';
-      console.log('Telegram user ID from initData:', telegramUserId);
+      console.log('Extracted user from initData:', telegramUserId);
+      // If userId is still empty, try to parse as JSON
+      if (!telegramUserId && initDataRaw.includes('user')) {
+        try {
+          const json = JSON.parse(initDataRaw);
+          telegramUserId = json.user?.id?.toString() || '';
+          console.log('Extracted user from JSON initData:', telegramUserId);
+        } catch (e) {
+          console.log('Failed to parse initData as JSON:', e);
+        }
+      }
     }
     setAuthLog('Authenticating with Telegram...');
     if (!telegramUserId) {
