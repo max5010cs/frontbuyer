@@ -15,33 +15,15 @@ function AppContent() {
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
   useEffect(() => {
-    let telegramUserId = '';
     let initDataRaw = (window as any).Telegram?.WebApp?.initData;
     console.log('Raw Telegram initData:', initDataRaw);
-    if (initDataRaw) {
-      // Try to parse initData as URLSearchParams
-      const params = new URLSearchParams(initDataRaw);
-      telegramUserId = params.get('user') || '';
-      console.log('Extracted user from initData:', telegramUserId);
-      // If userId is still empty, try to parse as JSON
-      if (!telegramUserId && initDataRaw.includes('user')) {
-        try {
-          const json = JSON.parse(initDataRaw);
-          telegramUserId = json.user?.id?.toString() || '';
-          console.log('Extracted user from JSON initData:', telegramUserId);
-        } catch (e) {
-          console.log('Failed to parse initData as JSON:', e);
-        }
-      }
-    }
-    setAuthLog('Authenticating with Telegram...');
-    if (!telegramUserId) {
-      setAuthLog('Authentication failed: Telegram user not found.');
+    if (!initDataRaw) {
+      setAuthLog('Authentication failed: Telegram initData not found.');
       return;
     }
-    setAuthLog('Telegram authentication succeeded, loading profile...');
-    console.log('Calling backend with:', telegramUserId);
-    loadBuyerInfo(telegramUserId);
+    setAuthLog('Authenticating with Telegram...');
+    // Send raw initData to backend for verification and extraction
+    loadBuyerInfo(initDataRaw);
   }, []);
 
   useEffect(() => {
@@ -51,11 +33,11 @@ function AppContent() {
     }
   }, []);
 
-  const loadBuyerInfo = async (userId: string) => {
+  const loadBuyerInfo = async (initData: string) => {
     try {
       setAuthLog('Loading profile from backend...');
-      console.log('Authenticating with backend:', userId);
-      const data = await api.authenticateBuyer(userId);
+      console.log('Authenticating with backend, sending initData:', initData);
+      const data = await api.authenticateBuyer(initData);
       console.log('Backend response for buyer authentication:', data);
       if (data.profile) {
         setBuyer(data.profile);
