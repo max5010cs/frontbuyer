@@ -71,13 +71,13 @@ export const api = {
     return await response.json();
   },
 
-  async authenticateBuyer(buyerId: string, lang: string = 'en') {
+  async authenticateBuyer(buyerId: string) {
     const response = await fetch(
       `${API_BASE}/buyer/authenticate`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: buyerId, lang }),
+        body: JSON.stringify({ user_id: buyerId }),
       }
     );
     if (!response.ok) throw new Error('Failed to authenticate buyer');

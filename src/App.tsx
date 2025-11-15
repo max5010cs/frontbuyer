@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { api } from './services/api';
 import { BuyerProvider, useBuyer } from './context/BuyerContext';
 import { Welcome } from './components/Welcome';
 import { FlowerFeed } from './components/FlowerFeed';
@@ -15,11 +16,9 @@ function AppContent() {
 
   useEffect(() => {
     let telegramUserId = '';
-    let telegramLang = 'en';
     if ((window as any).Telegram?.WebApp?.initData) {
       const params = new URLSearchParams((window as any).Telegram.WebApp.initData);
       telegramUserId = params.get('user') || '';
-      telegramLang = params.get('lang') || 'en';
       console.log('Telegram user ID from initData:', telegramUserId);
     }
     setAuthLog('Authenticating with Telegram...');
@@ -28,7 +27,8 @@ function AppContent() {
       return;
     }
     setAuthLog('Telegram authentication succeeded, loading profile...');
-    loadBuyerInfo(telegramUserId, telegramLang);
+    console.log('Calling backend with:', telegramUserId);
+    loadBuyerInfo(telegramUserId);
   }, []);
 
   useEffect(() => {
@@ -38,10 +38,11 @@ function AppContent() {
     }
   }, []);
 
-  const loadBuyerInfo = async (userId: string, lang: string) => {
+  const loadBuyerInfo = async (userId: string) => {
     try {
       setAuthLog('Loading profile from backend...');
-      const data = await api.authenticateBuyer(userId, lang);
+      console.log('Authenticating with backend:', userId);
+      const data = await api.authenticateBuyer(userId);
       console.log('Backend response for buyer authentication:', data);
       if (data.profile) {
         setBuyer(data.profile);
