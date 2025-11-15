@@ -20,6 +20,7 @@ function AppContent() {
       const params = new URLSearchParams((window as any).Telegram.WebApp.initData);
       telegramUserId = params.get('user') || '';
       telegramLang = params.get('lang') || 'en';
+      console.log('Telegram user ID from initData:', telegramUserId);
     }
     setAuthLog('Authenticating with Telegram...');
     if (!telegramUserId) {
