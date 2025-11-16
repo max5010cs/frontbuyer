@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Flower as FlowerIcon } from 'lucide-react';
 import { api } from '../services/api';
 import { useBuyer } from '../context/BuyerContext';
-import { CustomBouquet as CustomBouquetType } from '../types';
 
 interface CustomBouquetProps {
   onBack: () => void;
@@ -11,172 +10,115 @@ interface CustomBouquetProps {
 
 export function CustomBouquet({ onBack, onViewBids }: CustomBouquetProps) {
   const { buyerId } = useBuyer();
-  const [prompt, setPrompt] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [bouquet, setBouquet] = useState<CustomBouquetType | null>(null);
-  const [isCreatingBid, setIsCreatingBid] = useState(false);
-  const [notification, setNotification] = useState('');
+  const [description, setDescription] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [bouquetResult, setBouquetResult] = useState<{ id: number; description: string; image_url: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const suggestedPrompts = [
-    'A romantic red roses bouquet with white lilies',
-    'Pastel pink and lavender arrangement with eucalyptus',
-    'Bright sunflowers with orange gerberas',
-    'Elegant white orchids wrapped in silk',
-  ];
-
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
-
-    setIsGenerating(true);
-    setError(null);
-    try {
-      const result = await api.generateCustomBouquet(buyerId, prompt, 'en');
-      setBouquet(result);
-    } catch (error) {
-      console.error('Failed to generate bouquet:', error);
-      setError('Failed to generate bouquet');
-      setNotification('Failed to generate bouquet. Please try again.');
-      setTimeout(() => setNotification(''), 5000);
-    } finally {
-      setIsGenerating(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!description.trim()) {
+      setError('Please provide a description for your custom bouquet.');
+      return;
     }
-  };
 
-  const handleCreateBid = async () => {
-    if (!bouquet) return;
+    setIsLoading(true);
+    setError(null);
+    setBouquetResult(null);
 
-    setIsCreatingBid(true);
     try {
-      await api.createBid(bouquet.bouquet_id);
-      setNotification('Your request has been sent to all sellers!');
-      setTimeout(() => {
-        onViewBids(bouquet.bouquet_id);
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to create bid:', error);
-      setNotification('Failed to send bid request. Please try again.');
-      setTimeout(() => setNotification(''), 5000);
+      const result = await api.createCustomBouquet(buyerId, description);
+      setBouquetResult(result);
+    } catch (err) {
+      setError('Failed to create custom bouquet. Please try again.');
+      console.error(err);
     } finally {
-      setIsCreatingBid(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium mb-6 transition-colors"
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Browse
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Flower Feed
         </button>
 
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full p-2">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Create Your Custom Bouquet
-            </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+          Create Your Custom Bouquet
+        </h1>
+
+        <p className="text-gray-600 mb-8">
+          Describe your dream bouquet, and our AI will help create it for you.
+          Sellers will then bid to fulfill your unique request!
+        </p>
+
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <div className="mb-6">
+            <label htmlFor="description" className="block text-lg font-medium text-gray-800 mb-2">
+              Bouquet Description
+            </label>
+            <textarea
+              id="description"
+              rows={5}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 resize-none"
+              placeholder="e.g., A vibrant bouquet with red roses, white lilies, and a touch of baby's breath, perfect for a wedding anniversary."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isLoading}
+            ></textarea>
           </div>
 
-          <p className="text-gray-600 mb-6">
-            Describe your dream bouquet and let AI bring it to life
-          </p>
-
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="E.g., A pastel pink rose and white lily bouquet wrapped in silk ribbon"
-            className="w-full h-32 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none mb-4"
-          />
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
           <button
-            onClick={handleGenerate}
-            disabled={!prompt.trim() || isGenerating}
-            className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+            type="submit"
+            className="w-full bg-gradient-to-r from-primary-purple to-violet-600 hover:from-primary-purple hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed animate-pulse-slow"
+            disabled={isLoading}
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Generating...
-              </>
+            {isLoading ? (
+              <div className="relative flex items-center justify-center">
+                <Loader2 className="w-5 h-5 animate-spin-slow" />
+                <div className="absolute w-7 h-7 border-2 border-white rounded-full animate-ping-slow"></div>
+                <span className="ml-3">Generating Bouquet...</span>
+              </div>
             ) : (
               <>
                 <Sparkles className="w-5 h-5" />
-                Generate Bouquet
+                Generate Custom Bouquet
               </>
             )}
           </button>
+        </form>
 
-          <div className="mt-4">
-            <p className="text-sm text-gray-600 mb-2">Try these ideas:</p>
-            <div className="flex flex-wrap gap-2">
-              {suggestedPrompts.map((suggestion, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setPrompt(suggestion)}
-                  className="text-sm bg-violet-50 hover:bg-violet-100 text-violet-700 px-3 py-1 rounded-lg transition-colors"
-                >
-                  {suggestion}
-                </button>
-              ))}
+        {bouquetResult && (
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center animate-fade-in animation-delay-500">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Your Custom Bouquet is Ready!
+            </h2>
+            <p className="text-gray-700 mb-6">{bouquetResult.description}</p>
+            <div className="mb-6 flex justify-center">
+              <img
+                src={bouquetResult.image_url}
+                alt="Custom Bouquet"
+                className="max-w-full h-64 object-cover rounded-lg shadow-md"
+              />
             </div>
-          </div>
-        </div>
-
-        {notification && (
-          <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg">
-            {notification}
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {bouquet && (
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <img
-              src={bouquet.image_url}
-              alt="Generated bouquet"
-              className="w-full h-96 object-cover"
-            />
-
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Your Custom Bouquet
-              </h3>
-
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  Includes:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {bouquet.items.map((item, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-violet-50 text-violet-700 px-3 py-1 rounded-full text-sm"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={handleCreateBid}
-                disabled={isCreatingBid}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-4 rounded-xl transition-colors duration-200"
-              >
-                {isCreatingBid ? 'Sending...' : 'Request Quotes from Sellers'}
-              </button>
-            </div>
+            <button
+              onClick={() => onViewBids(bouquetResult.id)}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95"
+            >
+              <FlowerIcon className="w-5 h-5" />
+              View Bids for this Bouquet
+            </button>
           </div>
         )}
       </div>

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from './services/api';
 import { BuyerProvider, useBuyer } from './context/BuyerContext';
 import { Welcome } from './components/Welcome';
 import { FlowerFeed } from './components/FlowerFeed';
 import { CustomBouquet } from './components/CustomBouquet';
 import { BidsList } from './components/BidsList';
+import { Loader2 } from 'lucide-react'; // Import Loader2 for loading state
 
 type Screen = 'welcome' | 'feed' | 'custom' | 'bids';
 
@@ -24,16 +25,16 @@ function AppContent() {
     }
     setAuthLog('Authenticating with Telegram...');
     loadBuyerInfo(encryptedId);
-  }, []);
+  }, [loadBuyerInfo]);
 
   useEffect(() => {
-    if ((window as any).Telegram?.WebApp) {
-      (window as any).Telegram.WebApp.ready();
-      (window as any).Telegram.WebApp.expand();
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
     }
   }, []);
 
-  const loadBuyerInfo = async (encryptedId: string) => {
+  const loadBuyerInfo = useCallback(async (encryptedId: string) => {
     try {
       setAuthLog('Loading profile from backend...');
       const data = await api.authenticateBuyer(encryptedId);
@@ -46,7 +47,7 @@ function AppContent() {
     } catch (error) {
       setAuthLog('Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
-  };
+  }, [setBuyer]);
 
   const handleViewBids = (bouquetId: number) => {
     setCurrentBouquetId(bouquetId);
@@ -55,9 +56,12 @@ function AppContent() {
 
   if (!buyer) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mb-4"></div>
-        <div className="text-gray-600">{authLog}</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-flower-pink via-flower-blue to-flower-green">
+        <div className="relative flex items-center justify-center mb-4">
+          <Loader2 className="w-16 h-16 text-emerald-600 animate-spin-slow" />
+          <div className="absolute w-20 h-20 border-4 border-emerald-300 rounded-full animate-ping-slow"></div>
+        </div>
+        <div className="text-gray-700 text-lg font-medium animate-pulse">{authLog}</div>
       </div>
     );
   }

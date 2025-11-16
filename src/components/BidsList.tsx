@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Store, Loader2, MapPin } from 'lucide-react';
-import { Bid } from '../types';
+import { useEffect, useState, useCallback } from 'react';
+import { ArrowLeft, Store, Loader2, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import { api } from '../services/api';
+import { Bid } from '../types';
 import { useBuyer } from '../context/BuyerContext';
 
 interface BidsListProps {
@@ -21,9 +21,9 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
     loadBids();
     const interval = setInterval(loadBids, 10000);
     return () => clearInterval(interval);
-  }, [bouquetId]);
+  }, [bouquetId, loadBids]);
 
-  const loadBids = async () => {
+  const loadBids = useCallback(async () => {
     try {
       const data = await api.getBids(bouquetId);
       setBids(data);
@@ -33,7 +33,7 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [bouquetId]);
 
   const handleAcceptBid = async (bidId: number) => {
     setAcceptingBidId(bidId);
@@ -53,39 +53,46 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-flower-pink via-flower-blue to-flower-green">
+        <div className="relative flex items-center justify-center">
+          <Loader2 className="w-16 h-16 text-emerald-600 animate-spin-slow" />
+          <div className="absolute w-20 h-20 border-4 border-emerald-300 rounded-full animate-ping-slow"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-flower-pink via-flower-blue to-flower-green">
+        <p className="text-red-500 text-lg font-semibold">{error}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium mb-6 transition-colors"
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200 transform hover:-translate-x-1"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Custom Bouquet
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-6 animate-slide-up animation-delay-100">
           Seller Quotes
         </h1>
 
         {notification && (
-          <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg">
+          <div className="mb-6 bg-emerald-100 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-lg shadow-md animate-fade-in">
             {notification}
           </div>
         )}
 
         {bids.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center animate-fade-in animation-delay-200">
             <p className="text-gray-600 text-lg mb-2">
               Waiting for seller quotes...
             </p>
@@ -95,14 +102,14 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            {bids.map((bid) => (
+            {bids.map((bid, index) => (
               <div
                 key={bid.bid_id}
-                className={`bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-200 ${
+                className={`bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-1 ${
                   bid.status === 'accepted'
                     ? 'ring-2 ring-emerald-500'
-                    : 'hover:shadow-lg'
-                }`}
+                    : 'hover:shadow-xl'
+                } opacity-0 animate-slide-up animation-delay-${200 + index * 100}`}
               >
                 <div className="flex flex-col sm:flex-row">
                   <img
@@ -115,25 +122,30 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <Store className="w-5 h-5 text-gray-500" />
+                          <Store className="w-5 h-5 text-emerald-500" />
                           <h3 className="text-xl font-bold text-gray-900">
                             {bid.seller_name}
                           </h3>
                         </div>
 
                         <div className="flex items-start gap-2 text-gray-600">
-                          <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
+                          <MapPin className="w-4 h-4 mt-1 flex-shrink-0 text-red-500" />
                           <span className="text-sm">{bid.seller_address}</span>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-3xl font-bold text-emerald-600">
+                        <div className="text-3xl font-extrabold text-emerald-600">
                           ${bid.price}
                         </div>
                         {bid.status === 'accepted' && (
-                          <span className="inline-block mt-2 bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">
-                            Accepted
+                          <span className="inline-block mt-2 bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Accepted
+                          </span>
+                        )}
+                        {bid.status === 'rejected' && (
+                          <span className="inline-block mt-2 bg-red-100 text-red-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                            <XCircle className="w-3 h-3" /> Rejected
                           </span>
                         )}
                       </div>
@@ -143,7 +155,7 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
                       <button
                         onClick={() => handleAcceptBid(bid.bid_id)}
                         disabled={acceptingBidId === bid.bid_id}
-                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-md"
                       >
                         {acceptingBidId === bid.bid_id
                           ? 'Accepting...'
@@ -166,3 +178,4 @@ export function BidsList({ bouquetId, onBack }: BidsListProps) {
     </div>
   );
 }
+

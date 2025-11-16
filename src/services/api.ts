@@ -22,12 +22,12 @@ export const api = {
     return (await response.json()).flowers;
   },
 
-  async createOrder(buyerId: string, flowerId: string, quantity: number, lang: string = 'en') {
+  async createOrder(_buyerId: string, _flowerId: string, _quantity: number) {
     // Placeholder: implement order creation if needed
     return { message: 'Order created (placeholder)' };
   },
 
-  async getOrder(orderId: string, lang: string = 'en') {
+  async getOrder(_orderId: string) {
     // Placeholder: implement get order if needed
     return {};
   },
@@ -45,7 +45,7 @@ export const api = {
     return (await response.json()).custom_bouquet;
   },
 
-  async createBid(bouquetId: number, sellerId?: string, lang: string = 'en') {
+  async createBid(_bouquetId: number, _sellerId?: string) {
     // Not used in buyer flow, placeholder
     return {};
   },
