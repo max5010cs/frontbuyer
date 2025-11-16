@@ -6,6 +6,7 @@ interface WelcomeProps {
 }
 
 export function Welcome({ buyerName, onStartShopping }: WelcomeProps) {
+  console.log('Welcome component rendering...');
   return (
     <div className="min-h-screen bg-gradient-to-br from-flower-pink via-flower-blue to-flower-green flex items-center justify-center p-6 relative overflow-hidden">
       {/* Animated background elements - purely decorative */}

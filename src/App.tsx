@@ -15,25 +15,7 @@ function AppContent() {
   const [currentBouquetId, setCurrentBouquetId] = useState<number | null>(null);
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
 
-  useEffect(() => {
-    // Read encrypted user_id from URL param  "auth"
-    const params = new URLSearchParams(window.location.search);
-    const encryptedId = params.get('auth');
-    if (!encryptedId) {
-      setAuthLog('Authentication failed: No auth token found in URL.');
-      return;
-    }
-    setAuthLog('Authenticating with Telegram...');
-    loadBuyerInfo(encryptedId);
-  }, [loadBuyerInfo]);
-
-  useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
-    }
-  }, []);
-
+  // Define loadBuyerInfo using useCallback before the useEffect that uses it
   const loadBuyerInfo = useCallback(async (encryptedId: string) => {
     try {
       setAuthLog('Loading profile from backend...');
@@ -47,7 +29,39 @@ function AppContent() {
     } catch (error) {
       setAuthLog('Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
-  }, [setBuyer]);
+  }, [setBuyer, setAuthLog]); // Dependencies for useCallback
+
+  useEffect(() => {
+    // Read encrypted user_id from URL param  "auth"
+    const params = new URLSearchParams(window.location.search);
+    const encryptedId = params.get('auth');
+    if (!encryptedId) {
+      setAuthLog('Authentication failed: No auth token found in URL.');
+      return;
+    }
+    setAuthLog('Authenticating with Telegram...');
+    loadBuyerInfo(encryptedId);
+  }, [loadBuyerInfo, setAuthLog]); // Dependencies for useEffect
+
+  useEffect(() => {
+    console.log('AppContent mounted. Checking Telegram WebApp...');
+    if (window.Telegram?.WebApp) {
+      try {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        console.log('Telegram WebApp ready and expanded.');
+      } catch (e) {
+        console.error('Error initializing Telegram WebApp:', e);
+        // Optionally, display an error message to the user
+        setAuthLog('Error initializing Telegram app. Please try again.');
+      }
+    } else {
+      console.log('Telegram WebApp not found on window object.');
+      // For development outside Telegram, we might want to bypass auth
+      // setAuthLog('Telegram WebApp not detected. Proceeding without Telegram auth (dev mode).');
+      // loadBuyerInfo('some_dev_encrypted_id'); // Uncomment for local dev without Telegram
+    }
+  }, [setAuthLog]); // setAuthLog is a dependency here
 
   const handleViewBids = (bouquetId: number) => {
     setCurrentBouquetId(bouquetId);
@@ -105,15 +119,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
