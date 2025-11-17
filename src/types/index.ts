@@ -10,6 +10,7 @@ export interface Flower {
   price: number;
   image?: string;
   image_url?: string;
+  image_path?: string; // add this for backend compatibility
   description?: string;
   seller_name?: string;
   status?: string;
