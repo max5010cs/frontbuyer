@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Heart, ThumbsDown, ShoppingCart, MessageCircle } from 'lucide-react';
 import { Flower } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
+import { api } from '../services/api';
 
 interface Props {
   flowers: Flower[];
@@ -15,6 +16,10 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [quantity, setQuantity] = useState(1);
   const [isOrdering, setIsOrdering] = useState(false);
+  const [sellerLocation, setSellerLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [buyerLocation, setBuyerLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [distance, setDistance] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const flower = flowers[currentIndex];
 
@@ -35,6 +40,16 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
       setIsOrdering(false);
     }
   };
+
+  useEffect(() => {
+    async function fetchLocations() {
+      const res = await api.getOrderLocationInfo(flower.id);
+      setSellerLocation(res.seller_location);
+      setBuyerLocation(res.buyer_location);
+      setDistance(res.distance_km);
+    }
+    fetchLocations();
+  }, [flower.id]);
 
   const swipeHandlers = useSwipeable({
     onSwipedUp: () => handleNext(),
@@ -88,12 +103,11 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
               <MessageCircle className="w-6 h-6 text-blue-400" />
             </button>
             <button
-              onClick={handleOrder}
-              disabled={isOrdering}
+              onClick={() => setShowConfirm(true)}
               className="mt-5 px-8 py-3 bg-gradient-to-r from-blue-500 via-pink-400 to-orange-400 text-white font-extrabold rounded-full shadow-2xl transition-all duration-300 animate-pulse focus:outline-none focus:ring-4 focus:ring-pink-300 hover:scale-105 text-lg tracking-wide pointer-events-auto"
               style={{ boxShadow: '0 0 24px 4px #f472b6, 0 0 32px 8px #60a5fa99' }}
             >
-              {isOrdering ? 'Ordering...' : 'Order'}
+              Order
             </button>
           </div>
 
@@ -116,6 +130,52 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
             </div>
           </div>
         </div>
+
+        {/* Confirm order modal */}
+        {showConfirm && (
+          <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-xs w-full flex flex-col items-center">
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Confirm Order</h3>
+              {sellerLocation && (
+                <a
+                  href={`https://maps.google.com/?q=${sellerLocation.lat},${sellerLocation.lon}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-600 underline mb-2 text-sm"
+                >
+                  View Seller Location on Map
+                </a>
+              )}
+              {distance !== null && (
+                <div className="mb-2 text-gray-700 text-sm">{distance.toFixed(1)} km from you</div>
+              )}
+              <div className="flex items-center gap-2 mb-4">
+                <label htmlFor="quantity" className="text-sm font-medium">Quantity:</label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min={1}
+                  value={quantity}
+                  onChange={e => setQuantity(Number(e.target.value))}
+                  className="border rounded px-2 py-1 w-16 text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <button
+                onClick={async () => { setShowConfirm(false); await handleOrder(); }}
+                disabled={isOrdering}
+                className="w-full bg-primary text-white font-semibold py-2 px-4 rounded-xl hover:bg-primary-focus transition-colors disabled:opacity-60"
+              >
+                {isOrdering ? 'Ordering...' : 'Confirm Order'}
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="mt-2 text-gray-500 hover:text-gray-900 text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
