@@ -115,8 +115,6 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
           flower={flowers[selectedIndex]}
           onClose={() => setSelectedIndex(null)}
           onConfirm={handleOrder}
-          onPrev={selectedIndex > 0 ? handlePrev : undefined}
-          onNext={selectedIndex < flowers.length - 1 ? handleNext : undefined}
         />
       )}
     </div>
