@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { FlowerCard } from './FlowerCard';
-import { OrderModal } from './OrderModal';
+import { FlowerFullScreen } from './FlowerFullScreen';
 import { Flower } from '../types';
 import { api } from '../services/api';
 import { useBuyer } from '../context/BuyerContext';
@@ -38,14 +38,6 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
       setNotification('Failed to create order. Please try again.');
       setTimeout(() => setNotification(''), 5000);
     }
-  };
-
-  // Modal navigation handlers
-  const handlePrev = () => {
-    if (selectedIndex !== null && selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
-  };
-  const handleNext = () => {
-    if (selectedIndex !== null && selectedIndex < flowers.length - 1) setSelectedIndex(selectedIndex + 1);
   };
 
   if (isLoading) {
@@ -111,8 +103,9 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
       </div>
 
       {selectedIndex !== null && (
-        <OrderModal
-          flower={flowers[selectedIndex]}
+        <FlowerFullScreen
+          flowers={flowers}
+          initialIndex={selectedIndex}
           onClose={() => setSelectedIndex(null)}
           onConfirm={handleOrder}
         />
