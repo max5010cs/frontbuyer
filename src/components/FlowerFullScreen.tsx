@@ -77,21 +77,21 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
         {/* Overlay info and actions */}
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
           {/* Action buttons */}
-          <div className="absolute right-4 bottom-32 flex flex-col gap-2 pointer-events-auto items-end">
-            <button className="bg-white/30 p-2 rounded-full hover:bg-white/60 transition-colors shadow-lg">
-              <Heart className="w-5 h-5 text-red-500" />
+          <div className="absolute right-4 bottom-36 flex flex-col gap-4 pointer-events-auto items-end z-20">
+            <button className="bg-white/40 p-3 rounded-full hover:bg-white/70 transition-colors shadow-lg pointer-events-auto">
+              <Heart className="w-6 h-6 text-red-500" />
             </button>
-            <button className="bg-white/30 p-2 rounded-full hover:bg-white/60 transition-colors shadow-lg">
-              <ThumbsDown className="w-5 h-5 text-gray-200" />
+            <button className="bg-white/40 p-3 rounded-full hover:bg-white/70 transition-colors shadow-lg pointer-events-auto">
+              <ThumbsDown className="w-6 h-6 text-gray-200" />
             </button>
-            <button className="bg-white/30 p-2 rounded-full hover:bg-white/60 transition-colors shadow-lg">
-              <MessageCircle className="w-5 h-5 text-blue-400" />
+            <button className="bg-white/40 p-3 rounded-full hover:bg-white/70 transition-colors shadow-lg pointer-events-auto">
+              <MessageCircle className="w-6 h-6 text-blue-400" />
             </button>
             <button
               onClick={handleOrder}
               disabled={isOrdering}
-              className="mt-3 px-5 py-2 bg-emerald-500 text-white font-bold rounded-full shadow-lg transition-all duration-300 animate-pulse focus:outline-none focus:ring-2 focus:ring-emerald-400 hover:bg-emerald-600 text-base"
-              style={{ boxShadow: '0 0 16px 2px #34d399, 0 0 32px 4px #34d39955' }}
+              className="mt-5 px-8 py-3 bg-gradient-to-r from-blue-500 via-pink-400 to-orange-400 text-white font-extrabold rounded-full shadow-2xl transition-all duration-300 animate-pulse focus:outline-none focus:ring-4 focus:ring-pink-300 hover:scale-105 text-lg tracking-wide pointer-events-auto"
+              style={{ boxShadow: '0 0 24px 4px #f472b6, 0 0 32px 8px #60a5fa99' }}
             >
               {isOrdering ? 'Ordering...' : 'Order'}
             </button>
