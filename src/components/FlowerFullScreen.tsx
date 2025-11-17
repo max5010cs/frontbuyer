@@ -39,7 +39,7 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
   const swipeHandlers = useSwipeable({
     onSwipedUp: () => handleNext(),
     onSwipedDown: () => handlePrev(),
-    preventDefaultTouchmoveEvent: true,
+    preventScrollOnSwipe: true,
     trackTouch: true,
     trackMouse: false,
   });
