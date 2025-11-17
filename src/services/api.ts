@@ -1,3 +1,5 @@
+import type { Flower } from '../types';
+
 const API_BASE = 'https://flowybackend.onrender.com/api/v1';
 
 export const api = {
@@ -14,12 +16,10 @@ export const api = {
     return (await response.json()).profile;
   },
 
-  async getFlowers(lang: string = 'en') {
-    const response = await fetch(
-      `${API_BASE}/buyer/flowers?lang=${lang}`
-    );
+  async getFlowers(): Promise<Flower[]> {
+    const response = await fetch('https://flowybackend.onrender.com/api/v1/seller/flowers');
     if (!response.ok) throw new Error('Failed to fetch flowers');
-    return (await response.json()).flowers;
+    return await response.json();
   },
 
   async createOrder(_buyerId: string, _flowerId: string, _quantity: number) {
