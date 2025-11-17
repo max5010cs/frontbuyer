@@ -13,7 +13,7 @@ interface FlowerFeedProps {
 export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
   const { buyerId } = useBuyer();
   const [flowers, setFlowers] = useState<Flower[]>([]);
-  const [selectedFlower, setSelectedFlower] = useState<Flower | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -26,18 +26,26 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
   }, []);
 
   const handleOrder = async (quantity: number) => {
-    if (!selectedFlower) return;
-
+    if (selectedIndex === null) return;
+    const selectedFlower = flowers[selectedIndex];
     try {
       const result = await api.createOrder(buyerId, selectedFlower.id, quantity);
       setNotification(result.message);
-      setSelectedFlower(null);
+      setSelectedIndex(null);
       setTimeout(() => setNotification(''), 5000);
     } catch (error) {
       console.error('Failed to create order:', error);
       setNotification('Failed to create order. Please try again.');
       setTimeout(() => setNotification(''), 5000);
     }
+  };
+
+  // Modal navigation handlers
+  const handlePrev = () => {
+    if (selectedIndex !== null && selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
+  };
+  const handleNext = () => {
+    if (selectedIndex !== null && selectedIndex < flowers.length - 1) setSelectedIndex(selectedIndex + 1);
   };
 
   if (isLoading) {
@@ -82,12 +90,12 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {flowers.map((flower, index) => (
             <div key={flower.id} className={`opacity-0 animate-slide-up animation-delay-${200 + index * 100}`}>
               <FlowerCard
                 flower={flower}
-                onOrder={setSelectedFlower}
+                onOrder={() => setSelectedIndex(index)}
               />
             </div>
           ))}
@@ -102,11 +110,13 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
         )}
       </div>
 
-      {selectedFlower && (
+      {selectedIndex !== null && (
         <OrderModal
-          flower={selectedFlower}
-          onClose={() => setSelectedFlower(null)}
+          flower={flowers[selectedIndex]}
+          onClose={() => setSelectedIndex(null)}
           onConfirm={handleOrder}
+          onPrev={selectedIndex > 0 ? handlePrev : undefined}
+          onNext={selectedIndex < flowers.length - 1 ? handleNext : undefined}
         />
       )}
     </div>

@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { X, ShoppingBag } from 'lucide-react';
-import { Flower } from '../types';
+import { X } from 'lucide-react';
+import type { Flower } from '../types';
 
 interface OrderModalProps {
   flower: Flower;
   onClose: () => void;
   onConfirm: (quantity: number) => Promise<void>;
+  onPrev?: () => void;
+  onNext?: () => void;
 }
 
-export function OrderModal({ flower, onClose, onConfirm }: OrderModalProps) {
+export function OrderModal({ flower, onClose, onConfirm, onPrev, onNext }: OrderModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,10 +25,10 @@ export function OrderModal({ flower, onClose, onConfirm }: OrderModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden relative">
         <div className="relative">
           <img
-            src={flower.image_url}
+            src={flower.image_path ? `https://flowybackend.onrender.com${flower.image_path}` : ''}
             alt={flower.name}
             className="w-full h-64 object-cover"
           />
@@ -36,58 +38,49 @@ export function OrderModal({ flower, onClose, onConfirm }: OrderModalProps) {
           >
             <X className="w-5 h-5 text-gray-700" />
           </button>
-        </div>
-
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {flower.name}
-          </h2>
-
-          {flower.description && (
-            <p className="text-gray-600 mb-4">{flower.description}</p>
+          {onPrev && (
+            <button
+              onClick={onPrev}
+              className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+            >
+              <span className="sr-only">Previous</span>
+              &#8592;
+            </button>
           )}
-
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-            <ShoppingBag className="w-4 h-4" />
-            <span>{flower.seller_name}</span>
+          {onNext && (
+            <button
+              onClick={onNext}
+              className="absolute top-1/2 right-12 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+            >
+              <span className="sr-only">Next</span>
+              &#8594;
+            </button>
+          )}
+        </div>
+        <div className="p-6 flex flex-col gap-3">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">{flower.name}</h2>
+          <div className="text-sm text-gray-500 mb-2">{flower.items?.join(', ')}</div>
+          <div className="text-gray-700 mb-2">{flower.description}</div>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full text-base">${flower.price.toFixed(2)}</span>
           </div>
-
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-gray-700 font-medium">Quantity</span>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center font-semibold"
-                >
-                  -
-                </button>
-                <span className="font-semibold text-lg w-8 text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center font-semibold"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <span className="text-gray-700 font-medium">Total</span>
-              <span className="text-2xl font-bold text-emerald-600">
-                ${(flower.price * quantity).toFixed(2)}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="quantity" className="text-sm font-medium">Quantity:</label>
+            <input
+              id="quantity"
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={e => setQuantity(Number(e.target.value))}
+              className="border rounded px-2 py-1 w-16 text-center"
+            />
           </div>
-
           <button
             onClick={handleConfirm}
             disabled={isLoading}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-4 rounded-xl transition-colors duration-200"
+            className="mt-4 w-full bg-primary text-white font-semibold py-2 px-4 rounded-xl hover:bg-primary-focus transition-colors disabled:opacity-60"
           >
-            {isLoading ? 'Processing...' : 'Confirm Order'}
+            {isLoading ? 'Ordering...' : 'Order Now'}
           </button>
         </div>
       </div>
