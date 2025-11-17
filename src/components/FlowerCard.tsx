@@ -1,6 +1,8 @@
 import { Store } from 'lucide-react';
 import { Flower } from '../types';
 
+const IMAGE_BASE_URL = "https://flowybackend.onrender.com";
+
 interface FlowerCardProps {
   flower: Flower;
   onOrder?: (flower: Flower) => void;
@@ -11,7 +13,7 @@ export function FlowerCard({ flower, onOrder }: FlowerCardProps) {
     <div className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-102 group relative">
       <div className="aspect-square overflow-hidden bg-gray-100">
         <img
-          src={flower.image || flower.image_url}
+          src={flower.image_path ? `${IMAGE_BASE_URL}${flower.image_path}` : ''}
           alt={flower.name}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
