@@ -85,7 +85,7 @@ export const api = {
   },
 
   async getOrderLocationInfo(flowerId: string) {
-    const response = await fetch(`https://flowybackend.onrender.com/api/v1/buyer/order_location_info`, {
+    const response = await fetch(`/api/v1/buyer/order_location_info`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ flower_id: flowerId }),

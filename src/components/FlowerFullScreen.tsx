@@ -43,10 +43,16 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
 
   useEffect(() => {
     async function fetchLocations() {
-      const res = await api.getOrderLocationInfo(flower.id);
-      setSellerLocation(res.seller_location);
-      setBuyerLocation(res.buyer_location);
-      setDistance(res.distance_km);
+      try {
+        const res = await api.getOrderLocationInfo(flower.id);
+        setSellerLocation(res.seller_location);
+        setBuyerLocation(res.buyer_location);
+        setDistance(res.distance_km);
+      } catch (e) {
+        setSellerLocation(null);
+        setBuyerLocation(null);
+        setDistance(null);
+      }
     }
     fetchLocations();
   }, [flower.id]);
