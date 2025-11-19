@@ -1,7 +1,12 @@
+export interface Location {
+  lat: number;
+  lon: number;
+}
+
 export interface Buyer {
   id: number;
   name: string;
-  location: string;
+  location: Location;
 }
 
 export interface Flower {

@@ -134,42 +134,48 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
         {/* Confirm order modal */}
         {showConfirm && (
           <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center">
-            <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-xs w-full flex flex-col items-center">
-              <h3 className="text-lg font-bold mb-2 text-gray-900">Confirm Order</h3>
-              {sellerLocation && (
+            <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-xs w-full flex flex-col items-center animate-fade-in-up border-2 border-emerald-200">
+              <h3 className="text-xl font-extrabold mb-3 text-gray-900 tracking-tight">Confirm Order</h3>
+              {sellerLocation ? (
                 <a
                   href={`https://maps.google.com/?q=${sellerLocation.lat},${sellerLocation.lon}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 underline mb-2 text-sm"
+                  className="text-emerald-600 underline mb-2 text-base font-semibold hover:text-emerald-800 transition-colors"
                 >
                   View Seller Location on Map
                 </a>
+              ) : (
+                <div className="mb-2 text-gray-400 text-base">Loading seller location...</div>
               )}
-              {distance !== null && (
-                <div className="mb-2 text-gray-700 text-sm">{distance.toFixed(1)} km from you</div>
+              {distance !== null ? (
+                <div className="mb-2 text-gray-700 text-base font-medium">{distance.toFixed(1)} km from you</div>
+              ) : (
+                <div className="mb-2 text-gray-400 text-base">Calculating distance...</div>
               )}
-              <div className="flex items-center gap-2 mb-4">
-                <label htmlFor="quantity" className="text-sm font-medium">Quantity:</label>
+              <div className="flex items-center gap-2 mb-6 mt-2">
+                <label htmlFor="quantity" className="text-base font-semibold text-gray-700">Quantity:</label>
                 <input
                   id="quantity"
                   type="number"
                   min={1}
                   value={quantity}
                   onChange={e => setQuantity(Number(e.target.value))}
-                  className="border rounded px-2 py-1 w-16 text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="border-2 border-emerald-400 rounded-xl px-4 py-2 w-24 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all shadow-md bg-gray-50 hover:border-emerald-600 placeholder-gray-400"
+                  style={{ boxShadow: '0 2px 12px 0 #d1fae5' }}
+                  placeholder="Enter quantity"
                 />
               </div>
               <button
                 onClick={async () => { setShowConfirm(false); await handleOrder(); }}
                 disabled={isOrdering}
-                className="w-full bg-primary text-white font-semibold py-2 px-4 rounded-xl hover:bg-primary-focus transition-colors disabled:opacity-60"
+                className="w-full bg-gradient-to-r from-blue-500 via-pink-400 to-orange-400 text-white font-extrabold py-3 px-6 rounded-xl hover:scale-105 transition-all duration-300 shadow-xl disabled:opacity-60 text-lg tracking-wide mb-2"
               >
                 {isOrdering ? 'Ordering...' : 'Confirm Order'}
               </button>
               <button
                 onClick={() => setShowConfirm(false)}
-                className="mt-2 text-gray-500 hover:text-gray-900 text-xs"
+                className="mt-1 text-gray-400 hover:text-gray-700 text-sm underline"
               >
                 Cancel
               </button>
