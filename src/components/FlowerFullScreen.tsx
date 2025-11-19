@@ -44,14 +44,18 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
   useEffect(() => {
     async function fetchLocations() {
       try {
+        // For demo, pass undefined for buyerId or get from context/auth if available
         const res = await api.getOrderLocationInfo(flower.id);
         setSellerLocation(res.seller_location);
         setBuyerLocation(res.buyer_location);
-        setDistance(res.distance_km);
+        // Log for debugging
+        console.log('Seller location:', res.seller_location);
+        console.log('Buyer location:', res.buyer_location);
+        // setDistance(res.distance_km); // distance calculation commented out for now
       } catch (e) {
         setSellerLocation(null);
         setBuyerLocation(null);
-        setDistance(null);
+        // setDistance(null);
       }
     }
     fetchLocations();
@@ -142,23 +146,13 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
           <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center">
             <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-xs w-full flex flex-col items-center animate-fade-in-up border-2 border-emerald-200">
               <h3 className="text-xl font-extrabold mb-3 text-gray-900 tracking-tight">Confirm Order</h3>
-              {sellerLocation ? (
-                <a
-                  href={`https://maps.google.com/?q=${sellerLocation.lat},${sellerLocation.lon}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 underline mb-2 text-base font-semibold hover:text-emerald-800 transition-colors"
-                >
-                  View Seller Location on Map
-                </a>
-              ) : (
-                <div className="mb-2 text-gray-400 text-base">Loading seller location...</div>
-              )}
-              {distance !== null ? (
-                <div className="mb-2 text-gray-700 text-base font-medium">{distance.toFixed(1)} km from you</div>
-              ) : (
-                <div className="mb-2 text-gray-400 text-base">Calculating distance...</div>
-              )}
+              <div className="mb-2 text-gray-700 text-base font-medium">
+                Seller location: {sellerLocation ? JSON.stringify(sellerLocation) : 'Loading...'}
+              </div>
+              <div className="mb-2 text-gray-700 text-base font-medium">
+                Buyer location: {buyerLocation ? JSON.stringify(buyerLocation) : 'Loading...'}
+              </div>
+              {/* Distance and map link can be added back after confirming locations */}
               <div className="flex items-center gap-2 mb-6 mt-2">
                 <label htmlFor="quantity" className="text-base font-semibold text-gray-700">Quantity:</label>
                 <input

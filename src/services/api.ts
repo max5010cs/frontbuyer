@@ -84,11 +84,11 @@ export const api = {
     return await response.json();
   },
 
-  async getOrderLocationInfo(flowerId: string) {
+  async getOrderLocationInfo(flowerId: string, buyerId?: string) {
     const response = await fetch(`/api/v1/buyer/order_location_info`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ flower_id: flowerId }),
+      body: JSON.stringify({ flower_id: flowerId, buyer_id: buyerId }),
     });
     if (!response.ok) throw new Error('Failed to fetch order location info');
     return await response.json();
