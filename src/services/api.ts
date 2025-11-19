@@ -85,11 +85,13 @@ export const api = {
   },
 
   async getOrderLocationInfo(flowerId: string, buyerId?: string) {
-    const response = await fetch(`/api/v1/buyer/order_location_info`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ flower_id: flowerId, buyer_id: buyerId }),
-    });
+    const response = await fetch(
+      `${API_BASE}/buyer/order_location_info`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flower_id: flowerId, buyer_id: buyerId }),
+      }
+    );
     if (!response.ok) throw new Error('Failed to fetch order location info');
     return await response.json();
   },
