@@ -1,6 +1,6 @@
 import type { Flower } from '../types';
 
-const API_BASE = 'https://flowybackend.onrender.com/api/v1';
+const API_BASE = '/api/v1'; // Use relative path for local dev and proxy
 
 export const api = {
   async getBuyerInfo(buyerId: string, lang: string = 'en') {
@@ -17,7 +17,7 @@ export const api = {
   },
 
   async getFlowers(): Promise<Flower[]> {
-    const response = await fetch('https://flowybackend.onrender.com/api/v1/seller/flowers');
+    const response = await fetch(`${API_BASE}/seller/flowers`);
     if (!response.ok) throw new Error('Failed to fetch flowers');
     return await response.json();
   },
