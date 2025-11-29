@@ -13,55 +13,67 @@ function AppContent() {
   const { buyer, setBuyer } = useBuyer();
   const [screen, setScreen] = useState<Screen>('welcome');
   const [currentBouquetId, setCurrentBouquetId] = useState<number | null>(null);
-  const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
+  const [authLog, setAuthLog] = useState<string>('Initializing...');
 
-  // Define loadBuyerInfo using useCallback before the useEffect that uses it
   const loadBuyerInfo = useCallback(async (encryptedId: string) => {
     try {
-      setAuthLog('Loading profile from backend...');
+      console.log('[Auth Step 3] Sending authentication token to backend...');
+      setAuthLog('Verifying identity with server...');
       const data = await api.authenticateBuyer(encryptedId);
+      console.log('[Auth Step 4] Received response from backend:', data);
+
       if (data.profile) {
         setBuyer(data.profile);
-        setAuthLog('Authentication successful, opening app...');
+        setAuthLog('Authentication successful. Welcome!');
+        console.log('Authentication successful. Buyer profile:', data.profile);
       } else {
-        setAuthLog('Authentication failed: user not found.');
+        const errorMessage = `Authentication failed: ${data.message || 'User not found.'}`;
+        setAuthLog(errorMessage);
+        console.error(errorMessage);
       }
     } catch (error) {
-      setAuthLog('Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      const errorMessage = 'Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown network or server error.');
+      setAuthLog(errorMessage);
+      console.error('Error during authentication API call:', error);
     }
-  }, [setBuyer, setAuthLog]); // Dependencies for useCallback
+  }, [setBuyer]);
 
   useEffect(() => {
-    // Read encrypted user_id from URL param  "auth"
+    console.log('[Auth Step 1] Starting authentication process...');
+    setAuthLog('Reading authentication token...');
+    
     const params = new URLSearchParams(window.location.search);
     const encryptedId = params.get('auth');
+
     if (!encryptedId) {
-      setAuthLog('Authentication failed: No auth token found in URL.');
+      const errorMessage = 'Authentication failed: No auth token found in URL.';
+      setAuthLog(errorMessage);
+      console.error(errorMessage);
       return;
     }
-    setAuthLog('Authenticating with Telegram...');
+
+    console.log('[Auth Step 2] Found encrypted auth token:', encryptedId);
     loadBuyerInfo(encryptedId);
-  }, [loadBuyerInfo, setAuthLog]); // Dependencies for useEffect
+  }, [loadBuyerInfo]);
 
   useEffect(() => {
-    console.log('AppContent mounted. Checking Telegram WebApp...');
     if (window.Telegram?.WebApp) {
       try {
+        console.log('Initializing Telegram WebApp...');
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         console.log('Telegram WebApp ready and expanded.');
       } catch (e) {
-        console.error('Error initializing Telegram WebApp:', e);
-        // Optionally, display an error message to the user
-        setAuthLog('Error initializing Telegram app. Please try again.');
+        const errorMessage = 'Error initializing Telegram WebApp.';
+        setAuthLog(errorMessage);
+        console.error(errorMessage, e);
       }
     } else {
-      console.log('Telegram WebApp not found on window object.');
-      // For development outside Telegram, we might want to bypass auth
-      // setAuthLog('Telegram WebApp not detected. Proceeding without Telegram auth (dev mode).');
-      // loadBuyerInfo('some_dev_encrypted_id'); // Uncomment for local dev without Telegram
+      console.warn('Telegram WebApp not found. Running in development mode.');
+      // In dev mode, you might want to bypass auth or use a mock token.
+      // For this test, we will show an error if no token is in the URL.
     }
-  }, [setAuthLog]); // setAuthLog is a dependency here
+  }, []);
 
   const handleViewBids = (bouquetId: number) => {
     setCurrentBouquetId(bouquetId);

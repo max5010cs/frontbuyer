@@ -77,7 +77,7 @@ export const api = {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ auth_token: encryptedId }),
+        body: JSON.stringify({ auth: encryptedId }),
       }
     );
     if (!response.ok) throw new Error('Failed to authenticate buyer');
