@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Heart, ThumbsDown, ShoppingCart, MessageCircle } from 'lucide-react';
+import { X, Heart, ThumbsDown, MessageCircle, MapPin } from 'lucide-react';
 import { Flower } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
 import { api } from '../services/api';
+import { useBuyer } from '../context/BuyerContext';
 
 interface Props {
   flowers: Flower[];
@@ -17,10 +18,11 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
   const [quantity, setQuantity] = useState(1);
   const [isOrdering, setIsOrdering] = useState(false);
   const [sellerLocation, setSellerLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [buyerLocation, setBuyerLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
+  const { buyerId } = useBuyer();
   const flower = flowers[currentIndex];
 
   const handleNext = () => {
@@ -41,25 +43,23 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
     }
   };
 
-  useEffect(() => {
-    async function fetchLocations() {
-      try {
-        // For demo, pass undefined for buyerId or get from context/auth if available
-        const res = await api.getOrderLocationInfo(flower.id);
-        setSellerLocation(res.seller_location);
-        setBuyerLocation(res.buyer_location);
-        // Log for debugging
-        console.log('Seller location:', res.seller_location);
-        console.log('Buyer location:', res.buyer_location);
-        // setDistance(res.distance_km); // distance calculation commented out for now
-      } catch (e) {
-        setSellerLocation(null);
-        setBuyerLocation(null);
-        // setDistance(null);
-      }
+  const handleOpenOrderModal = async () => {
+    if (!buyerId || !flower) return;
+
+    setIsLoadingLocation(true);
+    setShowConfirm(true);
+    try {
+      const res = await api.getOrderLocationInfo(flower.id, buyerId);
+      setSellerLocation(res.seller_location);
+      setDistance(res.distance_km);
+    } catch (e) {
+      console.error("Failed to fetch location info:", e);
+      setSellerLocation(null);
+      setDistance(null);
+    } finally {
+      setIsLoadingLocation(false);
     }
-    fetchLocations();
-  }, [flower.id]);
+  };
 
   const swipeHandlers = useSwipeable({
     onSwipedUp: () => handleNext(),
@@ -68,6 +68,13 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
     trackTouch: true,
     trackMouse: false,
   });
+
+  // Reset location state when flower changes
+  useEffect(() => {
+    setSellerLocation(null);
+    setDistance(null);
+  }, [currentIndex]);
+
 
   return (
     <AnimatePresence>
@@ -113,7 +120,7 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
               <MessageCircle className="w-6 h-6 text-blue-400" />
             </button>
             <button
-              onClick={() => setShowConfirm(true)}
+              onClick={handleOpenOrderModal}
               className="mt-5 px-8 py-3 bg-gradient-to-r from-blue-500 via-pink-400 to-orange-400 text-white font-extrabold rounded-full shadow-2xl transition-all duration-300 animate-pulse focus:outline-none focus:ring-4 focus:ring-pink-300 hover:scale-105 text-lg tracking-wide pointer-events-auto"
               style={{ boxShadow: '0 0 24px 4px #f472b6, 0 0 32px 8px #60a5fa99' }}
             >
@@ -145,14 +152,35 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
         {showConfirm && (
           <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center">
             <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-xs w-full flex flex-col items-center animate-fade-in-up border-2 border-emerald-200">
-              <h3 className="text-xl font-extrabold mb-3 text-gray-900 tracking-tight">Confirm Order</h3>
-              <div className="mb-2 text-gray-700 text-base font-medium">
-                Seller location: {sellerLocation ? JSON.stringify(sellerLocation) : 'Loading...'}
-              </div>
-              <div className="mb-2 text-gray-700 text-base font-medium">
-                Buyer location: {buyerLocation ? JSON.stringify(buyerLocation) : 'Loading...'}
-              </div>
-              {/* Distance and map link can be added back after confirming locations */}
+              <h3 className="text-xl font-extrabold mb-3 text-gray-900 tracking-tight">Order Details</h3>
+              
+              {isLoadingLocation ? (
+                <div className="my-4">Loading location...</div>
+              ) : (
+                <div className="text-center my-4">
+                  {distance !== null ? (
+                    <p className="text-lg font-semibold text-gray-800 mb-2">
+                      <span className="font-bold">{distance} km</span> away
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 mb-2">
+                      Distance could not be calculated.
+                    </p>
+                  )}
+                  {sellerLocation && (
+                    <a
+                      href={`https://www.google.com/maps?q=${sellerLocation.lat},${sellerLocation.lon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1 text-blue-500 hover:underline"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      View Seller's Location
+                    </a>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-2 mb-6 mt-2">
                 <label htmlFor="quantity" className="text-base font-semibold text-gray-700">Quantity:</label>
                 <input
@@ -168,7 +196,7 @@ export function FlowerFullScreen({ flowers, initialIndex, onClose, onConfirm }: 
               </div>
               <button
                 onClick={async () => { setShowConfirm(false); await handleOrder(); }}
-                disabled={isOrdering}
+                disabled={isOrdering || isLoadingLocation}
                 className="w-full bg-gradient-to-r from-blue-500 via-pink-400 to-orange-400 text-white font-extrabold py-3 px-6 rounded-xl hover:scale-105 transition-all duration-300 shadow-xl disabled:opacity-60 text-lg tracking-wide mb-2"
               >
                 {isOrdering ? 'Ordering...' : 'Confirm Order'}
