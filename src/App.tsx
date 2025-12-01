@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react'; // Import Loader2 for loading state
 type Screen = 'welcome' | 'feed' | 'custom' | 'bids';
 
 function AppContent() {
-  const { buyer, setBuyer } = useBuyer();
+  const { buyer, setBuyer, setBuyerId } = useBuyer();
   const [screen, setScreen] = useState<Screen>('welcome');
   const [currentBouquetId, setCurrentBouquetId] = useState<number | null>(null);
   const [authLog, setAuthLog] = useState<string>('Authenticating with Telegram...');
@@ -22,6 +22,7 @@ function AppContent() {
       const data = await api.authenticateBuyer(encryptedId);
       if (data.profile) {
         setBuyer(data.profile);
+        setBuyerId(data.profile.user_id);
         setAuthLog('Authentication successful, opening app...');
       } else {
         setAuthLog('Authentication failed: user not found.');
@@ -29,7 +30,7 @@ function AppContent() {
     } catch (error) {
       setAuthLog('Authentication failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
-  }, [setBuyer, setAuthLog]); // Dependencies for useCallback
+  }, [setBuyer, setBuyerId, setAuthLog]); // Dependencies for useCallback
 
   useEffect(() => {
     // Read encrypted user_id from URL param  "auth"
