@@ -26,11 +26,11 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
   }, []);
 
   const handleOrder = async (quantity: number) => {
-    if (selectedIndex === null) return;
+    if (selectedIndex === null || !buyerId) return;
     const selectedFlower = flowers[selectedIndex];
     try {
-      const result = await api.createOrder(buyerId, selectedFlower.id, quantity);
-      setNotification(result.message);
+      const result = await api.createOrder(buyerId, selectedFlower.id, selectedFlower.seller_id, quantity);
+      setNotification('Order placed! Please check your Telegram bot for updates.');
       setSelectedIndex(null);
       setTimeout(() => setNotification(''), 5000);
     } catch (error) {

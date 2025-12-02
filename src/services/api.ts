@@ -1,11 +1,11 @@
 import type { Flower } from '../types';
 
-const API_BASE = 'https://flowybackend.onrender.com/api/v1'; // Use relative path for local dev and proxy
+const API_BASE = 'https://flowybackend.onrender.com'; 
 
 export const api = {
   async getBuyerInfo(buyerId: string, lang: string = 'en') {
     const response = await fetch(
-      `${API_BASE}/buyer/start`,
+      `${API_BASE}/api/v1/buyer/start`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -17,14 +17,26 @@ export const api = {
   },
 
   async getFlowers(): Promise<Flower[]> {
-    const response = await fetch(`${API_BASE}/seller/flowers`);
+    const response = await fetch(`${API_BASE}/api/v1/seller/flowers`);
     if (!response.ok) throw new Error('Failed to fetch flowers');
     return await response.json();
   },
 
-  async createOrder(_buyerId: string, _flowerId: string, _quantity: number) {
-    // Placeholder: implement order creation if needed
-    return { message: 'Order created (placeholder)' };
+  async createOrder(buyerId: string, flowerId: string, sellerId: string, quantity: number) {
+    const response = await fetch(`${API_BASE}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        buyer_id: buyerId,
+        flower_id: flowerId,
+        seller_id: sellerId,
+        quantity: quantity,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create order');
+    }
+    return await response.json();
   },
 
   async getOrder(_orderId: string) {
@@ -34,7 +46,7 @@ export const api = {
 
   async generateCustomBouquet(buyerId: string, prompt: string, lang: string = 'en') {
     const response = await fetch(
-      `${API_BASE}/buyer/create_custom`,
+      `${API_BASE}/api/v1/buyer/create_custom`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,7 +64,7 @@ export const api = {
 
   async getBids(bouquetId: number, lang: string = 'en') {
     const response = await fetch(
-      `${API_BASE}/buyer/bids/${bouquetId}?lang=${lang}`
+      `${API_BASE}/api/v1/buyer/bids/${bouquetId}?lang=${lang}`
     );
     if (!response.ok) throw new Error('Failed to fetch bids');
     return (await response.json()).bids;
@@ -60,7 +72,7 @@ export const api = {
 
   async acceptBid(buyerId: string, bidId: number, sellerId?: string, bouquetId?: string, lang: string = 'en') {
     const response = await fetch(
-      `${API_BASE}/buyer/bids/accept`,
+      `${API_BASE}/api/v1/buyer/bids/accept`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,7 +85,7 @@ export const api = {
 
   async authenticateBuyer(encryptedId: string) {
     const response = await fetch(
-      `${API_BASE}/buyer/authenticate`,
+      `${API_BASE}/api/v1/buyer/authenticate`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,7 +98,7 @@ export const api = {
 
   async getOrderLocationInfo(flowerId: string, buyerId?: string) {
     const response = await fetch(
-      `${API_BASE}/buyer/order_location_info`, {
+      `${API_BASE}/api/v1/buyer/order_location_info`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ flower_id: flowerId, buyer_id: buyerId }),
