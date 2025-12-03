@@ -29,13 +29,14 @@ export function FlowerFeed({ onCreateCustom }: FlowerFeedProps) {
     if (selectedIndex === null || !buyerId) return;
     const selectedFlower = flowers[selectedIndex];
     try {
-      const result = await api.createOrder(buyerId, selectedFlower.id, selectedFlower.seller_id, quantity);
+      await api.createOrder(buyerId, selectedFlower.id, quantity);
       setNotification('Order placed! Please check your Telegram bot for updates.');
       setSelectedIndex(null);
       setTimeout(() => setNotification(''), 5000);
     } catch (error) {
       console.error('Failed to create order:', error);
-      setNotification('Failed to create order. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setNotification(`Failed to create order: ${errorMessage}`);
       setTimeout(() => setNotification(''), 5000);
     }
   };

@@ -22,19 +22,19 @@ export const api = {
     return await response.json();
   },
 
-  async createOrder(buyerId: string, flowerId: string, sellerId: string, quantity: number) {
+  async createOrder(buyerId: string, flowerId: string, quantity: number) {
     const response = await fetch(`${API_BASE}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         buyer_id: buyerId,
         flower_id: flowerId,
-        seller_id: sellerId,
         quantity: quantity,
       }),
     });
     if (!response.ok) {
-      throw new Error('Failed to create order');
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to create order');
     }
     return await response.json();
   },
